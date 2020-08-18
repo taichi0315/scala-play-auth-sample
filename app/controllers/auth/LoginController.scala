@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
-import mvc.auth.AuthDataStore
+import mvc.auth.AuthMethods
 import model.auth.ViewValueAuthLogin
 import form.auth.LoginFormData
 import libs.model.{User, UserPassword}
@@ -15,7 +15,7 @@ import libs.dao.{UserDAO, UserPasswordDAO}
 class LoginController @Inject()(
   val userDao:              UserDAO,
   val userPasswordDao:      UserPasswordDAO,
-  val authDataStore:        AuthDataStore,
+  val authMethods:          AuthMethods,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {
@@ -54,7 +54,7 @@ extends BaseController with I18nSupport {
                 Some(userPassword) <- userPasswordDao.get(user.withId)
                 result             <- userPassword.verify(login.password) match {
                   case false => Future.successful(Unauthorized("invalid password"))
-                  case true  => authDataStore.loginSuccess(user, Redirect(homeUrl))
+                  case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
                 }
               } yield result
           }

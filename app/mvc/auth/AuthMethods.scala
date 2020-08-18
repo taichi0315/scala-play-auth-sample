@@ -8,19 +8,21 @@ import scala.concurrent.{Future, ExecutionContext}
 
 import libs.model.User
 
-case class AuthDataStore @Inject()(
+case class AuthMethods @Inject()(
   cache: AsyncCacheApi
 ) (implicit ec: ExecutionContext)
 {
   def loginSuccess(user: User, result: Result): Future[Result] = {
     val token: String = UUID.randomUUID.toString
     for {
-      _ <- cache.set(token, user)
+      _ <- set(token, user)
     } yield
       result.withCookies(
         Cookie("user", token)
       )
   }
+
+  def set(token: String, user: User): Future[akka.Done] = cache.set(token, user)
 
   def get(token: String): Future[Option[User]] = cache.get(token)
 
