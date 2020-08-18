@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
+import mvc.auth.{AuthAction, AuthMethods}
 import model.auth.ViewValueAuthLogout
 import libs.model.{User, UserPassword}
 import libs.dao.{UserDAO, UserPasswordDAO}

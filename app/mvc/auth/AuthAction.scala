@@ -14,7 +14,7 @@ case class UserRequest[A](
   request: Request[A]
 ) extends WrappedRequest[A](request)
 
-class AuthenticationAction @Inject()(val authMethods: AuthMethods)(implicit val executionContext: ExecutionContext)
+class AuthAction @Inject()(val authMethods: AuthMethods)(implicit val executionContext: ExecutionContext)
 extends ActionRefiner[Request, UserRequest] {
 
   protected def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
