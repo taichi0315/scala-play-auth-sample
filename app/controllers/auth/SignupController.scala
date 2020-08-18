@@ -5,7 +5,6 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
-import mvc.auth.AuthProfile
 import model.auth.ViewValueAuthSignup
 import form.auth.SignupFormData
 import libs.model.{User, UserPassword}
@@ -15,7 +14,6 @@ import libs.dao.{UserDAO, UserPasswordDAO}
 class SignupController @Inject()(
   val userDao:              UserDAO,
   val userPasswordDao:      UserPasswordDAO,
-  val authProfile:          AuthProfile,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {
@@ -25,7 +23,7 @@ extends BaseController with I18nSupport {
   private val postUrl:  Call  = controllers.auth.routes.SignupController.post()
   private val indexUrl: Call = controllers.routes.HomeController.index()
 
-  def get() = Action { implicit request: Request[AnyContent] =>
+  def get() = Action { implicit request =>
     val vv: ViewValueAuthSignup =
       ViewValueAuthSignup(
         form    = SignupFormData.form,
@@ -34,7 +32,7 @@ extends BaseController with I18nSupport {
     Ok(views.html.auth.Signup(vv))
   }
 
-  def post() = Action.async { implicit request: Request[AnyContent] =>
+  def post() = Action.async { implicit request =>
     SignupFormData.form.bindFromRequest().fold(
       (formWithErrors: Form[SignupFormData]) => {
         val vv: ViewValueAuthSignup =

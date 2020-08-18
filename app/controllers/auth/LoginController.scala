@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
-import mvc.auth.AuthProfile
+import mvc.auth.AuthMethods
 import model.auth.ViewValueAuthLogin
 import form.auth.LoginFormData
 import libs.model.{User, UserPassword}
@@ -15,7 +15,7 @@ import libs.dao.{UserDAO, UserPasswordDAO}
 class LoginController @Inject()(
   val userDao:              UserDAO,
   val userPasswordDao:      UserPasswordDAO,
-  val authProfile:          AuthProfile,
+  val authMethods:          AuthMethods,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {
@@ -25,7 +25,7 @@ extends BaseController with I18nSupport {
   private val postUrl: Call = controllers.auth.routes.LoginController.post()
   private val homeUrl: Call = controllers.routes.HomeController.home()
 
-  def get() = Action { implicit request: Request[AnyContent] =>
+  def get() = Action { implicit request =>
     val vv: ViewValueAuthLogin =
       ViewValueAuthLogin(
         form    = LoginFormData.form,
@@ -34,7 +34,7 @@ extends BaseController with I18nSupport {
     Ok(views.html.auth.Login(vv))
   }
 
-  def post() = Action.async { implicit request: Request[AnyContent] =>
+  def post() = Action.async { implicit request =>
     LoginFormData.form.bindFromRequest().fold(
       (formWithErrors: Form[LoginFormData]) => {
         val vv: ViewValueAuthLogin =
@@ -46,20 +46,19 @@ extends BaseController with I18nSupport {
       },
       (login: LoginFormData) => {
         for {
-          userEither:         Either[Result, User]         <- userDao.getByName(login.name).map(_.toRight(NotFound("not found name")))
-          userPasswordEither: Either[Result, UserPassword] <- userEither match {
-            case Left(l)     => Future.successful(Left(l))
-            case Right(user) => userPasswordDao.get(user.withId).map(_.toRight(NotFound("not found password")))
-          }
-          result: Result <- userPasswordEither match {
-            case Left(l)             => Future.successful(l)
-            case Right(userPassword) =>
-              userPassword.verify(login.password) match {
-                case false => Future.successful(Unauthorized("invalid password"))
-                case true  => authProfile.loginSucceed(userEither.right.get, Redirect(homeUrl))
-              }
+          userOpt: Option[User] <- userDao.getByName(login.name)
+          result:  Result       <- userOpt match {
+            case None       => Future.successful(NotFound("not found name"))
+            case Some(user) =>
+              for {
+                Some(userPassword) <- userPasswordDao.get(user.withId)
+                result             <- userPassword.verify(login.password) match {
+                  case false => Future.successful(Unauthorized("invalid password"))
+                  case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
+                }
+              } yield result
           }
         } yield result
-      })
+     })
     }
 }
