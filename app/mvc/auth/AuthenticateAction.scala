@@ -26,7 +26,7 @@ extends ActionRefiner[Request, UserRequest] {
           userOpt <- authMethods.get(token.value) 
         } yield {
           userOpt match {
-            case None            => Left(Unauthorized("not found user"))
+            case None       => Left(Unauthorized("not found user"))
             case Some(user) => Right(UserRequest(user, request))
           }
         }

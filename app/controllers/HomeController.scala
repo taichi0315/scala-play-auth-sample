@@ -17,7 +17,7 @@ extends BaseController {
      Ok(views.html.index())
   }
 
-  def home() = (Action andThen authenticateAction).async { implicit request: Request[AnyContent] =>
-    Future.successful(Ok(views.html.home("user")))
+  def home() = (Action andThen authenticateAction).async { implicit request =>
+    Future.successful(Ok(views.html.home(request.user.name)))
   }
 }

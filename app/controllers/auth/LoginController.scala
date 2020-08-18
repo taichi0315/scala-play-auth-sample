@@ -25,7 +25,7 @@ extends BaseController with I18nSupport {
   private val postUrl: Call = controllers.auth.routes.LoginController.post()
   private val homeUrl: Call = controllers.routes.HomeController.home()
 
-  def get() = Action { implicit request: Request[AnyContent] =>
+  def get() = Action { implicit request =>
     val vv: ViewValueAuthLogin =
       ViewValueAuthLogin(
         form    = LoginFormData.form,
