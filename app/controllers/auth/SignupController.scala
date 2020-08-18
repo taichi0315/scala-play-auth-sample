@@ -23,7 +23,7 @@ extends BaseController with I18nSupport {
   private val postUrl:  Call  = controllers.auth.routes.SignupController.post()
   private val indexUrl: Call = controllers.routes.HomeController.index()
 
-  def get() = Action { implicit request: Request[AnyContent] =>
+  def get() = Action { implicit request =>
     val vv: ViewValueAuthSignup =
       ViewValueAuthSignup(
         form    = SignupFormData.form,
@@ -32,7 +32,7 @@ extends BaseController with I18nSupport {
     Ok(views.html.auth.Signup(vv))
   }
 
-  def post() = Action.async { implicit request: Request[AnyContent] =>
+  def post() = Action.async { implicit request =>
     SignupFormData.form.bindFromRequest().fold(
       (formWithErrors: Form[SignupFormData]) => {
         val vv: ViewValueAuthSignup =
