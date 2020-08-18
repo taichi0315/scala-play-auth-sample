@@ -5,7 +5,6 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
-import mvc.auth.AuthProfile
 import model.auth.ViewValueAuthSignup
 import form.auth.SignupFormData
 import libs.model.{User, UserPassword}
@@ -15,7 +14,6 @@ import libs.dao.{UserDAO, UserPasswordDAO}
 class SignupController @Inject()(
   val userDao:              UserDAO,
   val userPasswordDao:      UserPasswordDAO,
-  val authProfile:          AuthProfile,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {

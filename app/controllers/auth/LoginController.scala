@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
 
-import mvc.auth.AuthProfile
+import mvc.auth.AuthDataStore
 import model.auth.ViewValueAuthLogin
 import form.auth.LoginFormData
 import libs.model.{User, UserPassword}
@@ -15,7 +15,7 @@ import libs.dao.{UserDAO, UserPasswordDAO}
 class LoginController @Inject()(
   val userDao:              UserDAO,
   val userPasswordDao:      UserPasswordDAO,
-  val authProfile:          AuthProfile,
+  val authDataStore:        AuthDataStore,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {
@@ -47,19 +47,16 @@ extends BaseController with I18nSupport {
       (login: LoginFormData) => {
         for {
           userOpt: Option[User] <- userDao.getByName(login.name)
-          result: Result        <- userOpt match {
-            case None => Future.successful(NotFound("not found name"))
+          result:  Result       <- userOpt match {
+            case None       => Future.successful(NotFound("not found name"))
             case Some(user) =>
               for {
-                userPasswordOpt <- userPasswordDao.get(user.withId)
-              } yield
-                userPasswordOpt match {
-                  case None => NotFound("not found password")
-                  case Some(userPassword) => userPassword.verify(login.password) match {
-                    case false => Unauthorized("invalid password")
-                    case true  => Redirect(homeUrl)
-                  }
+                Some(userPassword) <- userPasswordDao.get(user.withId)
+                result             <- userPassword.verify(login.password) match {
+                  case false => Future.successful(Unauthorized("invalid password"))
+                  case true  => authDataStore.loginSuccess(user, Redirect(homeUrl))
                 }
+              } yield result
           }
         } yield result
      })
