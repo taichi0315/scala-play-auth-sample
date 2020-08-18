@@ -22,6 +22,17 @@ case class AuthMethods @Inject()(
       )
   }
 
+  def logoutSuccess(result: Result)(implicit rh: RequestHeader): Future[Result] =
+    for {
+      _ <- rh.cookies.get("user") match {
+        case Some(token) => remove(token.value)
+        case None        => Future.successful(())
+      }
+    } yield
+      result.discardingCookies(
+        DiscardingCookie("user")
+      )
+
   def set(token: String, user: User): Future[akka.Done] = cache.set(token, user)
 
   def get(token: String): Future[Option[User]] = cache.get(token)

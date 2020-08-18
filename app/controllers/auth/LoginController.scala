@@ -34,7 +34,7 @@ extends BaseController with I18nSupport {
     Ok(views.html.auth.Login(vv))
   }
 
-  def post() = Action.async { implicit request: Request[AnyContent] =>
+  def post() = Action.async { implicit request =>
     LoginFormData.form.bindFromRequest().fold(
       (formWithErrors: Form[LoginFormData]) => {
         val vv: ViewValueAuthLogin =
