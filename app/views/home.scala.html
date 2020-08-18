@@ -1,0 +1,8 @@
+@(name: String)
+
+@linkToLogout = @{controllers.auth.routes.LogoutController.get()}
+
+<h1>Hello @name</h1>
+<a href="@linkToLogout">Logout</a>
+
+

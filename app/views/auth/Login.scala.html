@@ -1,0 +1,23 @@
+@(vv: model.auth.ViewValueAuthLogin)(
+  implicit messageProvider: MessagesProvider, requestHeader:   RequestHeader
+)
+
+<h1>Login</h1>
+@helper.form(vv.postUrl) {
+  @helper.CSRF.formField
+
+  <div>
+    @helper.inputText(vv.form("name"),
+      '_label           -> "username" ,
+      '_showConstraints -> false,
+    )
+  </div>
+  <div>
+    @helper.inputText(vv.form("password"),
+      '_label           -> "password" ,
+      '_showConstraints -> false,
+    )
+  </div>
+
+  <button>Login</button>
+}

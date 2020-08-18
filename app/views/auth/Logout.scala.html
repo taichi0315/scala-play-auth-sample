@@ -1,0 +1,10 @@
+@(vv: model.auth.ViewValueAuthLogout)(
+  implicit messageProvider: MessagesProvider, requestHeader:   RequestHeader
+)
+
+<h1>Logout</h1>
+@helper.form(vv.postUrl) {
+  @helper.CSRF.formField
+
+  <button>Yes</button>
+}

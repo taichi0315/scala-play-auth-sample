@@ -1,0 +1,6 @@
+@()
+
+@linkToLogin  = @{controllers.auth.routes.LoginController.get()}
+@linkToSignup = @{controllers.auth.routes.SignupController.get()}
+
+Please <a href="@linkToLogin">Login</a> or <a href="@linkToSignup">Signup</a>

@@ -1,0 +1,21 @@
+USE auth;
+
+CREATE TABLE IF NOT EXISTS `auth`.`users` (
+  `id`         BIGINT(20)   UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name`       VARCHAR(255) NOT NULL UNIQUE,
+  `updated_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `auth`.`user_passwords` (
+  `user_id`         BIGINT(20)   UNSIGNED NOT NULL,
+  `password`        VARCHAR(255) NOT NULL,
+  `updated_at`      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`))
+ENGINE = InnoDB;
+
+INSERT INTO users(name) VALUES ("yaga");
+
+INSERT INTO user_passwords(user_id,password) VALUES (1, "password");
