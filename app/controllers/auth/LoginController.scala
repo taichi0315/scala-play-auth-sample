@@ -52,7 +52,7 @@ extends BaseController with I18nSupport {
             case Some(user) =>
               for {
                 Some(userPassword) <- userPasswordDao.get(user.withId)
-                result             <- userPassword.verify(login.password) match {
+                result: Result     <- userPassword.verify(login.password) match {
                   case false => Future.successful(Unauthorized("invalid password"))
                   case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
                 }
