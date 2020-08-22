@@ -1,4 +1,4 @@
-name := """play-scala-auth"""
+name := """scala-play-auth-sample"""
 organization := "com.example"
 
 version := "1.0-SNAPSHOT"
@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"      %% "play-slick" % "5.0.0",
   "com.typesafe.play"      %% "play-slick-evolutions" % "5.0.0",
   "mysql"                   % "mysql-connector-java"  % "5.1.48",
+  "org.typelevel"          %% "cats-core" % "2.0.0",
   "org.scalatestplus.play" %% "scalatestplus-play"    % "5.0.0" % Test,
   caffeine,
   guice
