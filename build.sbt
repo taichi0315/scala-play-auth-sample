@@ -1,4 +1,4 @@
-name := """play-scala-auth"""
+name := """scala-play-auth-sample"""
 organization := "com.example"
 
 version := "1.0-SNAPSHOT"
