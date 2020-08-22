@@ -45,20 +45,18 @@ extends BaseController with I18nSupport {
         Future.successful(BadRequest(views.html.auth.Login(vv)))
       },
       (login: LoginFormData) => {
-        for {
-          userOpt: Option[User] <- userDao.getByName(login.name)
-          result:  Result       <- userOpt match {
+        userDao.getByName(login.name).flatMap(userOpt =>
+          userOpt match {
             case None       => Future.successful(NotFound("not found name"))
             case Some(user) =>
-              for {
-                Some(userPassword) <- userPasswordDao.get(user.withId)
-                result: Result     <- userPassword.verify(login.password) match {
+              userPasswordDao.get(user.withId).flatMap(userPasswordOpt =>
+                userPasswordOpt.get.verify(login.password) match {
                   case false => Future.successful(Unauthorized("invalid password"))
                   case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
                 }
-              } yield result
+              )
           }
-        } yield result
+        )
      })
     }
 }
