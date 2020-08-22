@@ -46,17 +46,20 @@ extends BaseController with I18nSupport {
       },
       (login: LoginFormData) => {
         for {
-          userOpt: Option[User] <- userDao.getByName(login.name)
-          result:  Result       <- userOpt match {
-            case None       => Future.successful(NotFound("not found name"))
-            case Some(user) =>
-              for {
-                Some(userPassword) <- userPasswordDao.get(user.withId)
-                result: Result     <- userPassword.verify(login.password) match {
-                  case false => Future.successful(Unauthorized("invalid password"))
-                  case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
-                }
-              } yield result
+          userOpt:    Option[User]         <- userDao.getByName(login.name)
+          userEither: Either[Result, User]  = userOpt.toRight(NotFound("not found name"))
+          userPasswordEither: Either[Result, UserPassword] <-
+            userEither match {
+              case Left(l)     => Future.successful(Left(l))
+              case Right(user) => userPasswordDao.get(user.withId).map(_.toRight(NotFound))
+            }
+          result: Result <- userPasswordEither match {
+            case Left(l)             => Future.successful(l)
+            case Right(userPassword) =>
+              userPassword.verify(login.password) match {
+                case false => Future.successful(Unauthorized("invalid password"))
+                case true  => authMethods.loginSuccess(userOpt.get, Redirect(homeUrl))
+              }
           }
         } yield result
      })
