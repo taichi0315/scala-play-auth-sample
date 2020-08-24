@@ -59,10 +59,7 @@ extends BaseController with I18nSupport {
             )
           } yield result
 
-        result.value.map {
-          case Left(l)  => l
-          case Right(r) => r
-        }
+        result.merge
       }
     )
   }
