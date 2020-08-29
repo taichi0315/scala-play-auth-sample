@@ -6,6 +6,7 @@ import scala.concurrent.Future
 import slick.jdbc.JdbcProfile
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.db.slick.HasDatabaseConfigProvider
+import com.mohiva.play.silhouette.api.util.PasswordInfo
 
 import libs.model.{User, UserPassword}
 
@@ -32,18 +33,18 @@ class UserPasswordDAO @Inject()(
 
   class UserPasswordTable(tag: Tag) extends Table[UserPassword](tag, "user_passwords") {
 
-    def userId    = column[User.Id] ("user_id")
-    def password  = column[String]  ("password")
+    def userId = column[User.Id] ("user_id")
+    def hash   = column[String]  ("password")
 
     type TableElementTuple = (
       User.Id, String
     )
 
-    def * = (userId, password) <> (
+    def * = (userId, hash) <> (
       (t: TableElementTuple) => UserPassword(
-        t._1, t._2
+        t._1, new PasswordInfo("bcrypt", t._2)
       ),
-      (v: TableElementType) => UserPassword.unapply(v)
+      (v: TableElementType) => UserPassword.unapply(v).map(_.copy(_2 = v.hash.password))
     )
   }
 }
