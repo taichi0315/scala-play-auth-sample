@@ -7,6 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
 import cats.implicits._
 
+import mvc.auth.AuthMethods
 import model.auth.ViewValueAuthLogin
 import service.UserPasswordService
 import form.auth.LoginFormData
@@ -16,6 +17,7 @@ import libs.dao.UserDAO
 @Singleton
 class LoginController @Inject()(
   val userDao:              UserDAO,
+  val authMethods:          AuthMethods,
   val userPasswordService:  UserPasswordService,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
@@ -49,7 +51,10 @@ extends BaseController with I18nSupport {
         val result: EitherT[Future, Result, Result] =
           for {
             user         <- EitherT(userDao.getByName(login.name).map(_.toRight(NotFound("not found name"))))
-            result       <- EitherT(userPasswordService.verifyPassword(user, login.password, Redirect(homeUrl)))
+            verifiedUser <- EitherT(userPasswordService.verifyPassword(user, login.password)).leftMap {
+              case service.UnauthorizedErr => Unauthorized("invalid password") 
+            }
+            result       <- EitherT(authMethods.loginSuccess(verifiedUser, Redirect(homeUrl)).map(Right(_).withLeft))
           } yield result
 
         result.merge
