@@ -11,7 +11,7 @@ case class SignupFormData (
     User(name)
 
   def toUserPassword(userId: User.Id): UserPassword =
-    UserPassword.build(userId, password)
+    UserPassword.fromRawPassword(userId, password)
 }
 
 object SignupFormData {

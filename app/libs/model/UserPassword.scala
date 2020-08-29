@@ -6,22 +6,22 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import libs.model.User
 
 case class UserPassword(
-  userId: User.Id,
-  hash:   PasswordInfo
+  userId:         User.Id,
+  hashedPassword: PasswordInfo
 ) {
   import UserPassword.passwordHasher
 
-  def verify(password: String): Boolean =
-    passwordHasher.matches(hash, password)
+  def verify(rawPassword: String): Boolean =
+    passwordHasher.matches(hashedPassword, rawPassword)
 }
 
 object UserPassword {
 
   lazy val passwordHasher = new BCryptPasswordHasher()
 
-  def build(userId: User.Id, password: String) =
+  def fromRawPassword(userId: User.Id, rawPassword: String) =
     new UserPassword(
-      userId = userId,
-      hash   = passwordHasher.hash(password)
+      userId         = userId,
+      hashedPassword = passwordHasher.hash(rawPassword)
     )
 }

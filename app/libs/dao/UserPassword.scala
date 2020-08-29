@@ -33,18 +33,18 @@ class UserPasswordDAO @Inject()(
 
   class UserPasswordTable(tag: Tag) extends Table[UserPassword](tag, "user_passwords") {
 
-    def userId = column[User.Id] ("user_id")
-    def hash   = column[String]  ("password")
+    def userId         = column[User.Id] ("user_id")
+    def hashedPassword = column[String]  ("password")
 
     type TableElementTuple = (
       User.Id, String
     )
 
-    def * = (userId, hash) <> (
+    def * = (userId, hashedPassword) <> (
       (t: TableElementTuple) => UserPassword(
         t._1, new PasswordInfo("bcrypt", t._2)
       ),
-      (v: TableElementType) => UserPassword.unapply(v).map(_.copy(_2 = v.hash.password))
+      (v: TableElementType) => UserPassword.unapply(v).map(_.copy(_2 = v.hashedPassword.password))
     )
   }
 }
