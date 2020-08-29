@@ -9,15 +9,16 @@ import cats.implicits._
 
 import mvc.auth.AuthMethods
 import model.auth.ViewValueAuthLogin
+import service.UserPasswordService
 import form.auth.LoginFormData
 import libs.model.{User, UserPassword}
-import libs.dao.{UserDAO, UserPasswordDAO}
+import libs.dao.UserDAO
 
 @Singleton
 class LoginController @Inject()(
   val userDao:              UserDAO,
-  val userPasswordDao:      UserPasswordDAO,
   val authMethods:          AuthMethods,
+  val userPasswordService:  UserPasswordService,
   val controllerComponents: ControllerComponents
 ) (implicit val ec: ExecutionContext)
 extends BaseController with I18nSupport {
@@ -50,13 +51,10 @@ extends BaseController with I18nSupport {
         val result: EitherT[Future, Result, Result] =
           for {
             user         <- EitherT(userDao.getByName(login.name).map(_.toRight(NotFound("not found name"))))
-            userPassword <- EitherT(userPasswordDao.get(user.withId).map(_.toRight(NotFound)))
-            result       <- EitherT(
-              userPassword.verify(login.password) match {
-                case false => Future.successful(Left(Unauthorized("invalid password")))
-                case true  => authMethods.loginSuccess(user, Redirect(homeUrl)).map(Right(_))
-              }
-            )
+            verifiedUser <- EitherT(userPasswordService.verifyPassword(user, login.password)).leftMap {
+              case service.UnauthorizedErr => Unauthorized("invalid password") 
+            }
+            result       <- EitherT(authMethods.loginSuccess(verifiedUser, Redirect(homeUrl)).map(Right(_).withLeft))
           } yield result
 
         result.merge
