@@ -4,6 +4,8 @@ import javax.inject.{Singleton, Inject}
 import play.api.mvc._
 import play.api.i18n.I18nSupport
 import scala.concurrent.{ExecutionContext, Future}
+import cats.data.EitherT
+import cats.implicits._
 
 import mvc.auth.AuthMethods
 import model.auth.ViewValueAuthLogin
@@ -45,20 +47,20 @@ extends BaseController with I18nSupport {
         Future.successful(BadRequest(views.html.auth.Login(vv)))
       },
       (login: LoginFormData) => {
-        for {
-          userOpt: Option[User] <- userDao.getByName(login.name)
-          result:  Result       <- userOpt match {
-            case None       => Future.successful(NotFound("not found name"))
-            case Some(user) =>
-              for {
-                Some(userPassword) <- userPasswordDao.get(user.withId)
-                result: Result     <- userPassword.verify(login.password) match {
-                  case false => Future.successful(Unauthorized("invalid password"))
-                  case true  => authMethods.loginSuccess(user, Redirect(homeUrl))
-                }
-              } yield result
-          }
-        } yield result
-     })
-    }
+        val result: EitherT[Future, Result, Result] =
+          for {
+            user         <- EitherT(userDao.getByName(login.name).map(_.toRight(NotFound("not found name"))))
+            userPassword <- EitherT(userPasswordDao.get(user.withId).map(_.toRight(NotFound)))
+            result       <- EitherT(
+              userPassword.verify(login.password) match {
+                case false => Future.successful(Left(Unauthorized("invalid password")))
+                case true  => authMethods.loginSuccess(user, Redirect(homeUrl)).map(Right(_))
+              }
+            )
+          } yield result
+
+        result.merge
+      }
+    )
+  }
 }
